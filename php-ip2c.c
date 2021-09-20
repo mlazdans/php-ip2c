@@ -2,18 +2,11 @@
 # include "config.h"
 #endif
 
-//#define PHP_WIN32
-//#define ZEND_WIN32
-//#define ZTS 1
-//#define ZEND_DEBUG 0
-////#define WIN32
-////#define TSRM_WIN32
-
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_ip2c.h"
-#include "../ip2c/ip2c.h"
+#include "ip2c.h"
 
 //
 // https://github.com/Microsoft/php-sdk-binary-tools
@@ -33,10 +26,10 @@
 //
 
 ZEND_DECLARE_MODULE_GLOBALS(ip2c)
-//static PHP_GINIT_FUNCTION(ip2c);
+static PHP_GINIT_FUNCTION(ip2c);
+static PHP_GSHUTDOWN_FUNCTION(ip2c);
 
 //ZEND_BEGIN_ARG_INFO_EX(name, _unused, return_reference, required_num_args)
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ip2c_getcountry, 0, 0, 1)
 	ZEND_ARG_INFO(0, ip_list)
 ZEND_END_ARG_INFO()
@@ -62,16 +55,32 @@ PHP_INI_BEGIN()
 	PHP_INI_ENTRY("ip2c.database", "", PHP_INI_ALL, NULL)
 PHP_INI_END()
 
+zend_function_entry ip2c_functions[] = {
+	PHP_FE(ip2c_getcountry, arginfo_ip2c_getcountry)
+	PHP_FE(ip2c_db_version, arginfo_db_version)
+	PHP_FE(ip2c_db_rec_count, arginfo_ip2c_db_rec_count)
+	PHP_FE(ip2c_db_ip_count, arginfo_ip2c_db_ip_count)
+	PHP_FE(ip2c_lib_version, arginfo_ip2c_lib_version)
+	PHP_FE(ip2c_load_db_from_file, arginfo_ip2c_load_db_from_file)
+	PHP_FE_END
+};
 
-//static void php_ip2c_init_globals(zend_ip2c_globals* ip2c_globals)
-//{
-//	memset(ip2c_globals, 0, sizeof(ip2c_globals));
-//	sprintf(ip2c_globals->version, "%s", "-not loaded-");
-//	//ip2c_globals->rec_count = 0;
-//	//ip2c_globals->ip_count = 0;
-//	//sprintf(ip2c_globals->rec_count, "%s", "-not loaded-");
-//	//sprintf(ip2c_globals->ip_count, "%s", "-not loaded-");
-//}
+zend_module_entry ip2c_module_entry = {
+	STANDARD_MODULE_HEADER,
+	"ip2c",
+	ip2c_functions,
+	PHP_MINIT(ip2c),
+	PHP_MSHUTDOWN(ip2c),
+	NULL, //PHP_RINIT(ip2c),
+	NULL, //PHP_RSHUTDOWN(ip2c),
+	PHP_MINFO(ip2c),
+	"0.4", /* Replace with version number for your extension */
+	PHP_MODULE_GLOBALS(ip2c),
+	PHP_GINIT(ip2c),
+	NULL,
+	NULL,
+	STANDARD_MODULE_PROPERTIES_EX
+};
 
 #ifdef COMPILE_DL_IP2C
 #ifdef ZTS
@@ -79,6 +88,10 @@ ZEND_TSRMLS_CACHE_DEFINE()
 #endif
 ZEND_GET_MODULE(ip2c)
 #endif
+
+//#ifdef COMPILE_DL_IP2C
+//ZEND_GET_MODULE(ip2c)
+//#endif
 
 static PHP_GINIT_FUNCTION(ip2c)
 {
@@ -127,6 +140,9 @@ PHP_MINIT_FUNCTION(ip2c)
 
 PHP_MSHUTDOWN_FUNCTION(ip2c)
 {
+#if defined(COMPILE_DL_IP2C) && defined(ZTS)
+	ZEND_TSRMLS_CACHE_UPDATE();
+#endif
 	UNREGISTER_INI_ENTRIES();
 	
 	ip2c_db_free(IP2CG(ipdb));
@@ -146,33 +162,6 @@ PHP_MINFO_FUNCTION(ip2c)
 
 	DISPLAY_INI_ENTRIES();
 }
-
-zend_function_entry ip2c_functions[] = {
-	PHP_FE(ip2c_getcountry, arginfo_ip2c_getcountry)
-	PHP_FE(ip2c_db_version, arginfo_db_version)
-	PHP_FE(ip2c_db_rec_count, arginfo_ip2c_db_rec_count)
-	PHP_FE(ip2c_db_ip_count, arginfo_ip2c_db_ip_count)
-	PHP_FE(ip2c_lib_version, arginfo_ip2c_lib_version)
-	PHP_FE(ip2c_load_db_from_file, arginfo_ip2c_load_db_from_file)
-	PHP_FE_END
-};
-
-zend_module_entry ip2c_module_entry = {
-	STANDARD_MODULE_HEADER,
-	"ip2c",
-	ip2c_functions,
-	PHP_MINIT(ip2c),
-	PHP_MSHUTDOWN(ip2c),
-	NULL, //PHP_RINIT(ip2c),
-	NULL, //PHP_RSHUTDOWN(ip2c),
-	PHP_MINFO(ip2c),
-	"0.4", /* Replace with version number for your extension */
-	PHP_MODULE_GLOBALS(ip2c),
-	PHP_GINIT(ip2c),
-	NULL,
-	NULL,
-	STANDARD_MODULE_PROPERTIES_EX
-};
 
 PHP_FUNCTION(ip2c_getcountry)
 {
