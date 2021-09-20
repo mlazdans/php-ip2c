@@ -120,11 +120,11 @@ int load_ip2c_db(const char *file_name) {
 			snprintf(IP2CG(db_ip_count), sizeof(IP2CG(db_ip_count)), "%u", IP2CG(ipdb)->ip_count);
 			snprintf(IP2CG(db_rec_count), sizeof(IP2CG(db_rec_count)), "%u", IP2CG(ipdb)->rec_count);
 		} else {
-			return FALSE;
+			return 0;
 		}
 	}
-	
-	return TRUE;
+
+	return 1;
 }
 
 PHP_MINIT_FUNCTION(ip2c)
@@ -144,9 +144,9 @@ PHP_MSHUTDOWN_FUNCTION(ip2c)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	UNREGISTER_INI_ENTRIES();
-	
+
 	ip2c_db_free(IP2CG(ipdb));
-	
+
 	return SUCCESS;
 }
 
@@ -189,8 +189,8 @@ PHP_FUNCTION(ip2c_getcountry)
 
 	ht = Z_ARRVAL_P(ip_list);
 
-	// zend_hash_num_elements() – returns number of elements in HashTable.
-	// zend_array_count(zend_array * arr) – returns number of elements in array.
+	// zend_hash_num_elements() ï¿½ returns number of elements in HashTable.
+	// zend_array_count(zend_array * arr) ï¿½ returns number of elements in array.
 	count = zend_hash_num_elements(ht);
 
 	ip_array = ecalloc(count, sizeof(ip2c_ip));
@@ -217,7 +217,7 @@ PHP_FUNCTION(ip2c_getcountry)
 				//convert_to_long(&val7n);
 				//iplong = zval_get_long(&val7n);
 		}
-		
+
 		ip_array[ip_count++] = ip_long;
 	} ZEND_HASH_FOREACH_END();
 

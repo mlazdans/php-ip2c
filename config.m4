@@ -1,10 +1,12 @@
 dnl $Id$
 dnl config.m4 for extension ip2c
 
-PHP_ARG_WITH(ip2c, for ip2c support, [  --with-ip2c[=DIR]            Include ip2c support])
+PHP_ARG_WITH([ip2c],
+	[for ip2c support],
+	[AS_HELP_STRING([[--with-ip2c[=DIR]]],
+		[Include ip2c support])])
 
 if test "$PHP_IP2C" != "no"; then
-
 	if test -r $PHP_IP2C/ip2c.h; then
 		IP2C_DIR=$PHP_IP2C
 	else
@@ -26,6 +28,6 @@ if test "$PHP_IP2C" != "no"; then
 
 	PHP_ADD_INCLUDE($IP2C_DIR)
 	PHP_ADD_LIBRARY_WITH_PATH(ip2c, $IP2C_DIR, IP2C_SHARED_LIBADD)
-	PHP_NEW_EXTENSION(ip2c, ip2c.c, $ext_shared)
+	PHP_NEW_EXTENSION(ip2c, php-ip2c.c, $ext_shared)
 	PHP_SUBST(IP2C_SHARED_LIBADD)
 fi

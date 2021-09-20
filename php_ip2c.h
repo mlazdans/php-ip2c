@@ -4,7 +4,7 @@
 extern zend_module_entry ip2c_module_entry;
 #define phpext_ip2c_ptr &ip2c_module_entry
 
-#include "../ip2c/ip2c.h"
+#include "ip2c.h"
 
 //#ifdef PHP_WIN32
 //#define PHP_IP2C_API __declspec(dllexport)
