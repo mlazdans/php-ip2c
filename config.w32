@@ -2,7 +2,7 @@ ARG_WITH("ip2c", "libip2c support", "no");
 
 if (PHP_IP2C != "no") {
 	if (CHECK_LIB("libip2c.lib", "ip2c", PHP_IP2C) &&
-		CHECK_HEADER_ADD_INCLUDE("ip2c.h", "PHP_IP2C")
+		CHECK_HEADER_ADD_INCLUDE("ip2c.h", "CFLAGS_IP2C", PHP_IP2C)
 	) {
 		EXTENSION('ip2c', 'php-ip2c.c', PHP_IP2C_SHARED, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
 		AC_DEFINE('HAVE_IP2C', 1, 'ip2c support enabled');
