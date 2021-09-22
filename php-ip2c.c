@@ -9,6 +9,9 @@
 #include "ip2c.h"
 
 //
+// Building PHP extensions
+// http://www.phpinternalsbook.com/php7/build_system/building_extensions.html
+//
 // https://github.com/Microsoft/php-sdk-binary-tools
 // https://ourcodeworld.com/articles/read/804/how-to-compile-a-php-extension-dll-file-in-windows-with-visual-studio
 // https://wiki.php.net/internals/windows/stepbystepbuild_sdk_2
@@ -20,14 +23,20 @@
 // Porting Extension to PHP7
 // https://github.com/beberlei/beberlei.de/blob/master/drafts/porting_extension_to_php7.rst
 //
-// Building PHP extensions
-// http://www.phpinternalsbook.com/php7/build_system/building_extensions.html
-//
-//
 
 ZEND_DECLARE_MODULE_GLOBALS(ip2c)
-static PHP_GINIT_FUNCTION(ip2c);
-static PHP_GSHUTDOWN_FUNCTION(ip2c);
+static PHP_GINIT_FUNCTION(ip2c)
+{
+#if defined(COMPILE_DL_IP2C) && defined(ZTS)
+	ZEND_TSRMLS_CACHE_UPDATE();
+#endif
+	ip2c_globals->ipdb = NULL;
+
+	snprintf(ip2c_globals->db_version, sizeof(ip2c_globals->db_version), "-not loaded-");
+	snprintf(ip2c_globals->db_ip_count, sizeof(ip2c_globals->db_ip_count), "-not loaded-");
+	snprintf(ip2c_globals->db_rec_count, sizeof(ip2c_globals->db_rec_count), "-not loaded-");
+	snprintf(ip2c_globals->lib_version, sizeof(ip2c_globals->lib_version), "%d.%d", IP2C_DB_VERS_HI, IP2C_DB_VERS_LO);
+}
 
 //ZEND_BEGIN_ARG_INFO_EX(name, _unused, return_reference, required_num_args)
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ip2c_getcountry, 0, 0, 1)
@@ -92,19 +101,6 @@ ZEND_GET_MODULE(ip2c)
 //#ifdef COMPILE_DL_IP2C
 //ZEND_GET_MODULE(ip2c)
 //#endif
-
-static PHP_GINIT_FUNCTION(ip2c)
-{
-#if defined(COMPILE_DL_IP2C) && defined(ZTS)
-	ZEND_TSRMLS_CACHE_UPDATE();
-#endif
-	ip2c_globals->ipdb = NULL;
-
-	snprintf(ip2c_globals->db_version, sizeof(ip2c_globals->db_version), "-not loaded-");
-	snprintf(ip2c_globals->db_ip_count, sizeof(ip2c_globals->db_ip_count), "-not loaded-");
-	snprintf(ip2c_globals->db_rec_count, sizeof(ip2c_globals->db_rec_count), "-not loaded-");
-	snprintf(ip2c_globals->lib_version, sizeof(ip2c_globals->lib_version), "%d.%d", IP2C_DB_VERS_HI, IP2C_DB_VERS_LO);
-}
 
 int php_ip2c_db_load_file(const char *file_name) {
 	if (IP2CG(ipdb)) {
