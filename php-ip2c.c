@@ -34,20 +34,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_ip2c_getcountry, 0, 0, 1)
 	ZEND_ARG_INFO(0, ip_list)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_db_version, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_ip2c_db_get_version, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_ip2c_db_rec_count, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_ip2c_db_get_rec_count, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_ip2c_db_ip_count, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_ip2c_db_get_ip_count, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_ip2c_lib_version, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_ip2c_load_db_from_file, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ip2c_db_load_file, 0, 0, 1)
 	ZEND_ARG_INFO(0, file_name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ip2c_lib_get_version, 0)
 ZEND_END_ARG_INFO()
 
 PHP_INI_BEGIN()
@@ -56,12 +56,12 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 
 zend_function_entry ip2c_functions[] = {
-	PHP_FE(ip2c_getcountry, arginfo_ip2c_getcountry)
-	PHP_FE(ip2c_db_version, arginfo_db_version)
-	PHP_FE(ip2c_db_rec_count, arginfo_ip2c_db_rec_count)
-	PHP_FE(ip2c_db_ip_count, arginfo_ip2c_db_ip_count)
-	PHP_FE(ip2c_lib_version, arginfo_ip2c_lib_version)
-	PHP_FE(ip2c_load_db_from_file, arginfo_ip2c_load_db_from_file)
+	PHP_FE(ip2c_getcountry,       arginfo_ip2c_getcountry)
+	PHP_FE(ip2c_db_get_version,   arginfo_ip2c_db_get_version)
+	PHP_FE(ip2c_db_get_rec_count, arginfo_ip2c_db_get_rec_count)
+	PHP_FE(ip2c_db_get_ip_count,  arginfo_ip2c_db_get_ip_count)
+	PHP_FE(ip2c_db_load_file,     arginfo_ip2c_db_load_file)
+	PHP_FE(ip2c_lib_get_version,  arginfo_ip2c_lib_get_version)
 	PHP_FE_END
 };
 
@@ -106,7 +106,7 @@ static PHP_GINIT_FUNCTION(ip2c)
 	snprintf(ip2c_globals->lib_version, sizeof(ip2c_globals->lib_version), "%d.%d", IP2C_DB_VERS_HI, IP2C_DB_VERS_LO);
 }
 
-int load_ip2c_db(const char *file_name) {
+int php_ip2c_db_load_file(const char *file_name) {
 	if (IP2CG(ipdb)) {
 		ip2c_db_free(IP2CG(ipdb));
 		IP2CG(ipdb) = NULL;
@@ -114,7 +114,7 @@ int load_ip2c_db(const char *file_name) {
 
 	if (IP2CG(ipdb) == NULL) {
 		//startTime = (float)clock() / CLOCKS_PER_SEC;
-		IP2CG(ipdb) = (IPDB*)ip2c_load_db_from_file(file_name);
+		IP2CG(ipdb) = (IPDB*)ip2c_db_load_file(file_name);
 		if (IP2CG(ipdb)) {
 			snprintf(IP2CG(db_version), sizeof(IP2CG(db_version)), "%d.%d", IP2CG(ipdb)->vers_hi, IP2CG(ipdb)->vers_lo);
 			snprintf(IP2CG(db_ip_count), sizeof(IP2CG(db_ip_count)), "%u", IP2CG(ipdb)->ip_count);
@@ -153,11 +153,11 @@ PHP_MSHUTDOWN_FUNCTION(ip2c)
 PHP_MINFO_FUNCTION(ip2c)
 {
 	php_info_print_table_start();
-	php_info_print_table_row(2, "ip2c support", "enabled");
-	php_info_print_table_row(2, "libip2c version", IP2CG(lib_version));
+	php_info_print_table_row(2, "ip2c support",     "enabled");
+	php_info_print_table_row(2, "libip2c version",  IP2CG(lib_version));
 	php_info_print_table_row(2, "Database version", IP2CG(db_version));
-	php_info_print_table_row(2, "Record count", IP2CG(db_rec_count));
-	php_info_print_table_row(2, "IP count", IP2CG(db_ip_count));
+	php_info_print_table_row(2, "Record count",     IP2CG(db_rec_count));
+	php_info_print_table_row(2, "IP count",         IP2CG(db_ip_count));
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
@@ -173,7 +173,7 @@ PHP_FUNCTION(ip2c_getcountry)
 
 	if (!IP2CG(ipdb)) {
 		if (strlen(INI_STR("ip2c.database"))) {
-			if (!load_ip2c_db(INI_STR("ip2c.database"))) {
+			if (!php_ip2c_db_load_file(INI_STR("ip2c.database"))) {
 				php_error_docref(NULL, E_WARNING, "Can't load ip2c database: %s", INI_STR("ip2c.database"));
 				return;
 			}
@@ -237,27 +237,22 @@ PHP_FUNCTION(ip2c_getcountry)
 	efree(iso_codes);
 }
 
-PHP_FUNCTION(ip2c_db_version)
+PHP_FUNCTION(ip2c_db_get_version)
 {
 	RETURN_STRING(IP2CG(db_version));
 }
 
-PHP_FUNCTION(ip2c_lib_version)
-{
-	RETURN_STRING(IP2CG(lib_version));
-}
-
-PHP_FUNCTION(ip2c_db_rec_count)
+PHP_FUNCTION(ip2c_db_get_rec_count)
 {
 	RETURN_STRING(IP2CG(db_rec_count));
 }
 
-PHP_FUNCTION(ip2c_db_ip_count)
+PHP_FUNCTION(ip2c_db_get_ip_count)
 {
 	RETURN_STRING(IP2CG(db_ip_count));
 }
 
-PHP_FUNCTION(ip2c_load_db_from_file)
+PHP_FUNCTION(ip2c_db_load_file)
 {
 	zend_string *file_name;
 
@@ -265,5 +260,10 @@ PHP_FUNCTION(ip2c_load_db_from_file)
 		Z_PARAM_STR(file_name)
 	ZEND_PARSE_PARAMETERS_END();
 
-	RETURN_BOOL(load_ip2c_db(file_name->val));
+	RETURN_BOOL(php_ip2c_db_load_file(file_name->val));
+}
+
+PHP_FUNCTION(ip2c_lib_get_version)
+{
+	RETURN_STRING(IP2CG(lib_version));
 }

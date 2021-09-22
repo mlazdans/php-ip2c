@@ -44,11 +44,11 @@ PHP_MSHUTDOWN_FUNCTION(ip2c);
 PHP_MINFO_FUNCTION(ip2c);
 
 PHP_FUNCTION(ip2c_getcountry);
-PHP_FUNCTION(ip2c_db_version);
-PHP_FUNCTION(ip2c_db_rec_count);
-PHP_FUNCTION(ip2c_db_ip_count);
-PHP_FUNCTION(ip2c_lib_version);
-PHP_FUNCTION(ip2c_load_db_from_file);
+PHP_FUNCTION(ip2c_db_get_version);
+PHP_FUNCTION(ip2c_db_get_rec_count);
+PHP_FUNCTION(ip2c_db_get_ip_count);
+PHP_FUNCTION(ip2c_db_load_file);
+PHP_FUNCTION(ip2c_lib_get_version);
 
 /*
 	Declare any global variables you may need between the BEGIN
