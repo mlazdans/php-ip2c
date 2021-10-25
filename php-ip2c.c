@@ -165,7 +165,7 @@ PHP_FUNCTION(ip2c_getcountry)
 	HashTable *ht;
 	ip2c_ip *ip_array;
 	ip2c_iso *iso_codes;
-	unsigned long ip_count = 0, r, count, ip_long;
+	unsigned int ip_count = 0, r, count, ip_long;
 
 	if (!IP2CG(ipdb)) {
 		if (strlen(INI_STR("ip2c.database"))) {
@@ -197,10 +197,10 @@ PHP_FUNCTION(ip2c_getcountry)
 				ip_long = ip2c_ip2long(Z_STRVAL_P(element));
 				break;
 			case IS_LONG:
-				ip_long = (unsigned long)Z_LVAL_P(element);
+				ip_long = (unsigned int)Z_LVAL_P(element);
 				break;
 			case IS_DOUBLE:
-				ip_long = (unsigned long)Z_DVAL_P(element);
+				ip_long = (unsigned int)Z_DVAL_P(element);
 				break;
 			case IS_ARRAY:
 			case IS_OBJECT:
